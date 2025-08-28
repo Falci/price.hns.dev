@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HNS Price API Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        h1 {
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #0056b3;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .method {
+            font-weight: bold;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .get { background-color: #28a745; }
+        .post { background-color: #007bff; }
+        /* Style for inline code snippets like parameter names */
+        code {
+            background-color: #e9ecef;
+            color: #c7254e;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        /* Style for multi-line code blocks like curl examples */
+        .code-block {
+            background: #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            display: block;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+        p { margin: 10px 0; }
+        ul { padding-left: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HNS Price API Documentation</h1>
+        <p>A simple API to retrieve historical and current price data for Handshake (HNS).</p>
+
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> /prices</h2>
+            <p>Returns stored price data. Provides powerful filtering and aggregation.</p>
+            <p><strong>Query Parameters:</strong></p>
+            <ul>
+                <li><code>from</code> (string, optional): Start date (YYYY-MM-DD). Defaults to today.</li>
+                <li><code>to</code> (string, optional): End date (YYYY-MM-DD).</li>
+                <li><code>currency</code> (string, optional): <code>usd</code> or <code>btc</code>. Defaults to <code>usd</code>.</li>
+            </ul>
+            <p><strong>Behavior:</strong></p>
+            <ul>
+                <li>If only <code>from</code> is provided, returns all granular data for that single day.</li>
+                <li>If <code>from</code> and <code>to</code> are different, returns the single latest entry for each day in the range.</li>
+            </ul>
+            <p><strong>Examples:</strong></p>
+            <code class="code-block"># Get all data for today in USD (default)
+curl "https://price.hns.dev/prices"</code>
+            <code class="code-block"># Get all granular data for a specific day in USD
+curl "https://price.hns.dev/prices?from=2023-01-15"</code>
+            <code class="code-block"># Get all granular data for a specific day in BTC
+curl "https://price.hns.dev/prices?from=2023-01-15&currency=btc"</code>
+            <code class="code-block"># Get a daily summary for a date range in BTC
+curl "https://price.hns.dev/prices?from=2023-01-01&to=2023-01-31&currency=btc"</code>
+        </div>
+
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> /price</h2>
+            <p>Returns the single most recent price for a given currency.</p>
+            <p><strong>Query Parameters:</strong></p>
+            <ul>
+                <li><code>currency</code> (string, optional): <code>usd</code> or <code>btc</code>. Defaults to <code>usd</code>.</li>
+            </ul>
+            <p><strong>Behavior:</strong></p>
+            <ul>
+                <li>By default, returns the price as plain text.</li>
+                <li>If the <code>Accept: application/json</code> header is sent, returns the full data object as JSON.</li>
+            </ul>
+            <p><strong>Examples:</strong></p>
+            <code class="code-block"># Get the latest BTC price as plain text
+curl "https://price.hns.dev/price?currency=btc"</code>
+            <code class="code-block"># Get the latest USD price as a JSON object
+curl -H "Accept: application/json" "https://price.hns.dev/price"</code>
+        </div>
+
+        <div class="endpoint">
+            <h2><span class="method get">GET</span> /download/database</h2>
+            <p>Downloads the complete SQLite database file.</p>
+            <code class="code-block"># Download the database using a browser or curl
+curl -o hns_price.db "https://price.hns.dev/download/database"</code>
+        </div>
+
+    </div>
+</body>
+</html>

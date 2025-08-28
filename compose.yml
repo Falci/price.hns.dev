@@ -1,0 +1,10 @@
+services:
+  app:
+    image: ghcr.io/falci/price.hns.dev:edge
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - '3030:3030'

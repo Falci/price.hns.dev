@@ -1,0 +1,13 @@
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+
+# Database
+hns_price.db
+
+# Environment variables
+.env
