@@ -3,7 +3,7 @@ services:
     image: ghcr.io/falci/price.hns.dev:edge
     restart: unless-stopped
     volumes:
-      - .:/app
+      - ./data:/app/data
     env_file:
       - .env
     ports:

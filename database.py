@@ -1,7 +1,7 @@
 
 import sqlite3
 
-DATABASE_NAME = "hns_price.db"
+DATABASE_NAME = "./data/hns_price.db"
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE_NAME)
