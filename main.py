@@ -86,7 +86,7 @@ def ingest_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/prices")
+@app.get("/historical")
 def read_prices(
     from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD). Defaults to today."),
     to_date: Optional[str] = Query(None, alias="to", description="End date (YYYY-MM-DD)"),
@@ -117,7 +117,7 @@ def read_prices(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/price")
+@app.get("/latest")
 def get_current_price(
     request: Request,
     currency: Optional[str] = Query("usd", description="Currency (e.g., usd, btc)")
@@ -144,7 +144,7 @@ def get_current_price(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/download/database")
+@app.get("/database")
 def download_database():
     """
     Downloads the SQLite database file.
