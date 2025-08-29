@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from database import create_tables, get_db_connection, insert_price, get_prices, get_latest_timestamp, get_daily_summary_prices, get_latest_price, DATABASE_NAME
+from database import create_tables, get_db_connection, insert_price, get_prices, get_latest_timestamp, get_daily_summary_prices, get_latest_price, DATABASE_NAME, get_min_price, get_max_price
 from coingecko import get_market_chart_range
 import datetime
 import time
@@ -144,9 +144,73 @@ def get_current_price(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/database")
+@app.get("/database.db")
 def download_database():
     """
     Downloads the SQLite database file.
     """
-    return FileResponse(path=DATABASE_NAME, filename="prices.db", media_type='application/x-sqlite3')
+    return FileResponse(path=DATABASE_NAME, filename="database.db", media_type='application/x-sqlite3')
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+@app.get("/min")
+def get_min_price_endpoint(
+    request: Request,
+    currency: Optional[str] = Query("usd", description="Currency (e.g., usd, btc)"),
+    since: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)")
+):
+    """
+    Returns the minimum price for a given currency.
+    - If 'since' is provided, it will only include prices from that date onwards.
+    - If 'Accept' header is 'application/json', returns the full data object.
+    - Otherwise, returns only the price as plain text.
+    """
+    try:
+        since_ts = to_timestamp(since) if since else None
+        min_price = get_min_price(currency, since_ts)
+        if not min_price:
+            raise HTTPException(status_code=404, detail="No price data found for this currency.")
+
+        accept_header = request.headers.get('accept', '').lower()
+
+        if 'application/json' in accept_header:
+            return min_price
+        else:
+            price_value = min_price['price']
+            formatted_price = f"{price_value:.18f}"
+            return PlainTextResponse(content=formatted_price)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/max")
+def get_max_price_endpoint(
+    request: Request,
+    currency: Optional[str] = Query("usd", description="Currency (e.g., usd, btc)"),
+    since: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)")
+):
+    """
+    Returns the maximum price for a given currency.
+    - If 'since' is provided, it will only include prices from that date onwards.
+    - If 'Accept' header is 'application/json', returns the full data object.
+    - Otherwise, returns only the price as plain text.
+    """
+    try:
+        since_ts = to_timestamp(since) if since else None
+        max_price = get_max_price(currency, since_ts)
+        if not max_price:
+            raise HTTPException(status_code=404, detail="No price data found for this currency.")
+
+        accept_header = request.headers.get('accept', '').lower()
+
+        if 'application/json' in accept_header:
+            return max_price
+        else:
+            price_value = max_price['price']
+            formatted_price = f"{price_value:.18f}"
+            return PlainTextResponse(content=formatted_price)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

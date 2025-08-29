@@ -87,6 +87,7 @@
         A simple API to retrieve historical and current price data for Handshake
         (HNS).
       </p>
+      <p>View on <a href="https://github.com/Falci/price.hns.dev">GitHub</a></p>
 
       <div class="endpoint">
         <h2><span class="method get">GET</span> /latest</h2>
@@ -157,20 +158,88 @@
         >
         <code class="code-block"
           ># Get all granular data for a specific day in BTC curl
-          "https://price.hns.dev/historical?from=2023-01-15&currency=btc"</code
+          "https://price.hns.dev/historical?currency=btc&from=2023-01-15"</code
         >
         <code class="code-block"
           ># Get a daily summary for a date range in BTC curl
-          "https://price.hns.dev/historical?from=2023-01-01&to=2023-01-31&currency=btc"</code
+          "https://price.hns.dev/historical?currency=btc&from=2023-01-01&to=2023-01-31"</code
         >
       </div>
 
       <div class="endpoint">
-        <h2><span class="method get">GET</span> /database</h2>
+        <h2><span class="method get">GET</span> /database.db</h2>
         <p>Downloads the complete SQLite database file.</p>
         <code class="code-block"
-          ># Download the database using a browser or curl curl -o hns_price.db
-          "https://price.hns.dev/database"</code
+          ># Download the database using a browser or curl curl -o database.db
+          "https://price.hns.dev/database.db"</code
+        >
+      </div>
+
+      <div class="endpoint">
+        <h2><span class="method get">GET</span> /min</h2>
+        <p>Returns the minimum price for a given currency.</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+          <li>
+            <code>currency</code> (string, optional): <code>usd</code> or
+            <code>btc</code>. Defaults to <code>usd</code>.
+          </li>
+          <li>
+            <code>since</code> (string, optional): Start date (YYYY-MM-DD). If
+            provided, it will only include prices from that date onwards.
+          </li>
+        </ul>
+        <p><strong>Behavior:</strong></p>
+        <ul>
+          <li>By default, returns the price as plain text.</li>
+          <li>
+            If the <code>Accept: application/json</code> header is sent, returns
+            the full data object as JSON.
+          </li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <code class="code-block"
+          ># Get the minimum BTC price as plain text curl
+          "https://price.hns.dev/min?currency=btc"</code
+        >
+        <code class="code-block"
+          ># Get the minimum USD price since 2023-01-01 as a JSON object curl -H
+          "Accept: application/json"
+          "https://price.hns.dev/min?since=2023-01-01"</code
+        >
+      </div>
+
+      <div class="endpoint">
+        <h2><span class="method get">GET</span> /max</h2>
+        <p>Returns the maximum price for a given currency.</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+          <li>
+            <code>currency</code> (string, optional): <code>usd</code> or
+            <code>btc</code>. Defaults to <code>usd</code>.
+          </li>
+          <li>
+            <code>since</code> (string, optional): Start date (YYYY-MM-DD). If
+            provided, it will only include prices from that date onwards.
+          </li>
+        </ul>
+        <p><strong>Behavior:</strong></p>
+        <ul>
+          <li>By default, returns the price as plain text.</li>
+          <li>
+            If the <code>Accept: application/json</code> header is sent, returns
+            the full data object as JSON.
+          </li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <code class="code-block"
+          ># Get the maximum BTC price as plain text curl
+          "https://price.hns.dev/max?currency=btc"</code
+        >
+        <code class="code-block"
+          ># Get the maximum USD price since 2023-01-01 as a JSON object curl -H
+          "Accept: application/json"
+          "https://price.hns.dev/max?since=2023-01-01"</code
         >
       </div>
     </div>

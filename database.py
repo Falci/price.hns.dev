@@ -95,3 +95,28 @@ def get_latest_price(currency: str):
     price = cursor.fetchone()
     conn.close()
     return dict(price) if price else None
+
+
+def _get_price_by_order(currency: str, since: int = None, order: str = "ASC"):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM prices WHERE currency = ?"
+    params = [currency]
+
+    if since:
+        query += " AND timestamp >= ?"
+        params.append(since)
+
+    query += f" ORDER BY price {order} LIMIT 1"
+
+    cursor.execute(query, params)
+    price = cursor.fetchone()
+    conn.close()
+    return dict(price) if price else None
+
+def get_min_price(currency: str, since: int = None):
+    return _get_price_by_order(currency, since, "ASC")
+
+def get_max_price(currency: str, since: int = None):
+    return _get_price_by_order(currency, since, "DESC")
