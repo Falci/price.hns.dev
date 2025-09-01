@@ -17,7 +17,7 @@ def create_tables():
             currency TEXT NOT NULL,
             price REAL NOT NULL,
             market_cap REAL,
-            total_volume REAL,
+            total_volume INTEGER,
             PRIMARY KEY (timestamp, currency)
         )
     """)
@@ -29,7 +29,7 @@ def insert_price(conn, timestamp, currency, price, market_cap, total_volume):
     cursor.execute("""
         INSERT OR REPLACE INTO prices (timestamp, currency, price, market_cap, total_volume)
         VALUES (?, ?, ?, ?, ?)
-    """, (timestamp, currency, price, market_cap, total_volume))
+    """, (timestamp, currency, price, market_cap, int(total_volume) if total_volume is not None else None))
     conn.commit()
 
 def get_prices(from_timestamp: int = None, to_timestamp: int = None, currency: str = None):

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HNS Price API Documentation</title>
+    <title>HNS Price</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
@@ -12,236 +12,309 @@
         color: #333;
         background-color: #f4f4f4;
         margin: 0;
-        padding: 20px;
+        padding: 0;
+      }
+      .navbar {
+        background-color: #0056b3;
+        padding: 1rem;
+        text-align: center;
+      }
+      .navbar a {
+        color: #fff;
+        text-decoration: none;
+        margin: 0 1rem;
       }
       .container {
         max-width: 800px;
         margin: auto;
+        padding: 20px;
+      }
+      .price-data {
         background: #fff;
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
       }
-      h1,
-      h2 {
+      .price-data h2 {
         color: #0056b3;
+        margin-top: 0;
       }
-      h1 {
-        border-bottom: 2px solid #0056b3;
-        padding-bottom: 10px;
+      .toggle-container {
+        margin-bottom: 15px;
       }
-      .endpoint {
-        background: #f8f9fa;
-        border-left: 4px solid #0056b3;
-        margin: 20px 0;
-        padding: 15px;
+      .toggle-container button {
+        padding: 8px 12px;
+        border: 1px solid #0056b3;
+        background-color: #fff;
+        color: #0056b3;
+        cursor: pointer;
         border-radius: 4px;
+        margin-right: 5px;
       }
-      .method {
-        font-weight: bold;
+      .toggle-container button.active {
+        background-color: #0056b3;
         color: #fff;
-        padding: 5px 10px;
-        border-radius: 3px;
-        display: inline-block;
-        margin-right: 10px;
       }
-      .get {
-        background-color: #28a745;
+
+      .chart-container {
+        margin-top: 20px;
       }
-      .post {
-        background-color: #007bff;
+
+      .time-range-toggle {
+        margin-bottom: 15px;
       }
-      /* Style for inline code snippets like parameter names */
-      code {
-        background-color: #e9ecef;
-        color: #c7254e;
-        padding: 2px 4px;
+
+      .time-range-toggle button {
+        padding: 8px 12px;
+        border: 1px solid #0056b3;
+        background-color: #fff;
+        color: #0056b3;
+        cursor: pointer;
         border-radius: 4px;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo,
-          Courier, monospace;
+        margin-right: 5px;
       }
-      /* Style for multi-line code blocks like curl examples */
-      .code-block {
-        background: #333;
+
+      .time-range-toggle button.active {
+        background-color: #0056b3;
         color: #fff;
-        padding: 15px;
-        border-radius: 4px;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo,
-          Courier, monospace;
-        display: block;
-        white-space: pre-wrap;
-        margin-top: 10px;
-      }
-      p {
-        margin: 10px 0;
-      }
-      ul {
-        padding-left: 20px;
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/documentation.html">API Documentation</a>
+    </div>
     <div class="container">
-      <h1>HNS Price API Documentation</h1>
-      <p>
-        A simple API to retrieve historical and current price data for Handshake
-        (HNS).
-      </p>
-      <p>View on <a href="https://github.com/Falci/price.hns.dev">GitHub</a></p>
-
-      <div class="endpoint">
-        <h2><span class="method get">GET</span> /latest</h2>
-        <p>Returns the single most recent price for a given currency.</p>
-        <p><strong>Query Parameters:</strong></p>
-        <ul>
-          <li>
-            <code>currency</code> (string, optional): <code>usd</code> or
-            <code>btc</code>. Defaults to <code>usd</code>.
-          </li>
-        </ul>
-        <p><strong>Behavior:</strong></p>
-        <ul>
-          <li>By default, returns the price as plain text.</li>
-          <li>
-            If the <code>Accept: application/json</code> header is sent, returns
-            the full data object as JSON.
-          </li>
-        </ul>
-        <p><strong>Examples:</strong></p>
-        <code class="code-block"
-          ># Get the latest BTC price as plain text curl
-          "https://price.hns.dev/latest?currency=btc"</code
-        >
-        <code class="code-block"
-          ># Get the latest USD price as a JSON object curl -H "Accept:
-          application/json" "https://price.hns.dev/latest"</code
-        >
+      <div class="price-data">
+        <h2>Price Data</h2>
+        <div class="toggle-container">
+          <button id="usd-btn" class="active">USD</button>
+          <button id="btc-btn">BTC</button>
+        </div>
+        <div>
+          <strong>All-time High:</strong> <span id="ath-price"></span>
+          <span id="ath-date"></span>
+        </div>
+        <div>
+          <strong>All-time Low:</strong> <span id="atl-price"></span>
+          <span id="atl-date"></span>
+        </div>
+        <div>
+          <strong>52-week High:</strong> <span id="52w-high-price"></span>
+          <span id="52w-high-date"></span>
+        </div>
       </div>
-
-      <div class="endpoint">
-        <h2><span class="method get">GET</span> /historical</h2>
-        <p>
-          Returns stored price data. Provides powerful filtering and
-          aggregation.
-        </p>
-        <p><strong>Query Parameters:</strong></p>
-        <ul>
-          <li>
-            <code>from</code> (string, optional): Start date (YYYY-MM-DD).
-            Defaults to today.
-          </li>
-          <li><code>to</code> (string, optional): End date (YYYY-MM-DD).</li>
-          <li>
-            <code>currency</code> (string, optional): <code>usd</code> or
-            <code>btc</code>. Defaults to <code>usd</code>.
-          </li>
-        </ul>
-        <p><strong>Behavior:</strong></p>
-        <ul>
-          <li>
-            If only <code>from</code> is provided, returns all granular data for
-            that single day.
-          </li>
-          <li>
-            If <code>from</code> and <code>to</code> are different, returns the
-            single latest entry for each day in the range.
-          </li>
-        </ul>
-        <p><strong>Examples:</strong></p>
-        <code class="code-block"
-          ># Get all data for today in USD (default) curl
-          "https://price.hns.dev/historical"</code
-        >
-        <code class="code-block"
-          ># Get all granular data for a specific day in USD curl
-          "https://price.hns.dev/historical?from=2023-01-15"</code
-        >
-        <code class="code-block"
-          ># Get all granular data for a specific day in BTC curl
-          "https://price.hns.dev/historical?currency=btc&from=2023-01-15"</code
-        >
-        <code class="code-block"
-          ># Get a daily summary for a date range in BTC curl
-          "https://price.hns.dev/historical?currency=btc&from=2023-01-01&to=2023-01-31"</code
-        >
-      </div>
-
-      <div class="endpoint">
-        <h2><span class="method get">GET</span> /database.db</h2>
-        <p>Downloads the complete SQLite database file.</p>
-        <code class="code-block"
-          ># Download the database using a browser or curl curl -o database.db
-          "https://price.hns.dev/database.db"</code
-        >
-      </div>
-
-      <div class="endpoint">
-        <h2><span class="method get">GET</span> /min</h2>
-        <p>Returns the minimum price for a given currency.</p>
-        <p><strong>Query Parameters:</strong></p>
-        <ul>
-          <li>
-            <code>currency</code> (string, optional): <code>usd</code> or
-            <code>btc</code>. Defaults to <code>usd</code>.
-          </li>
-          <li>
-            <code>since</code> (string, optional): Start date (YYYY-MM-DD). If
-            provided, it will only include prices from that date onwards.
-          </li>
-        </ul>
-        <p><strong>Behavior:</strong></p>
-        <ul>
-          <li>By default, returns the price as plain text.</li>
-          <li>
-            If the <code>Accept: application/json</code> header is sent, returns
-            the full data object as JSON.
-          </li>
-        </ul>
-        <p><strong>Examples:</strong></p>
-        <code class="code-block"
-          ># Get the minimum BTC price as plain text curl
-          "https://price.hns.dev/min?currency=btc"</code
-        >
-        <code class="code-block"
-          ># Get the minimum USD price since 2023-01-01 as a JSON object curl -H
-          "Accept: application/json"
-          "https://price.hns.dev/min?since=2023-01-01"</code
-        >
-      </div>
-
-      <div class="endpoint">
-        <h2><span class="method get">GET</span> /max</h2>
-        <p>Returns the maximum price for a given currency.</p>
-        <p><strong>Query Parameters:</strong></p>
-        <ul>
-          <li>
-            <code>currency</code> (string, optional): <code>usd</code> or
-            <code>btc</code>. Defaults to <code>usd</code>.
-          </li>
-          <li>
-            <code>since</code> (string, optional): Start date (YYYY-MM-DD). If
-            provided, it will only include prices from that date onwards.
-          </li>
-        </ul>
-        <p><strong>Behavior:</strong></p>
-        <ul>
-          <li>By default, returns the price as plain text.</li>
-          <li>
-            If the <code>Accept: application/json</code> header is sent, returns
-            the full data object as JSON.
-          </li>
-        </ul>
-        <p><strong>Examples:</strong></p>
-        <code class="code-block"
-          ># Get the maximum BTC price as plain text curl
-          "https://price.hns.dev/max?currency=btc"</code
-        >
-        <code class="code-block"
-          ># Get the maximum USD price since 2023-01-01 as a JSON object curl -H
-          "Accept: application/json"
-          "https://price.hns.dev/max?since=2023-01-01"</code
-        >
+      <div class="chart-container">
+        <div class="time-range-toggle">
+          <button class="time-range-btn active" data-range="all">All</button>
+          <button class="time-range-btn" data-range="1y">1Y</button>
+          <button class="time-range-btn" data-range="1m">1M</button>
+          <button class="time-range-btn" data-range="7d">7D</button>
+          <button class="time-range-btn" data-range="1d">1D</button>
+        </div>
+        <canvas id="price-chart"></canvas>
       </div>
     </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const usdBtn = document.getElementById('usd-btn');
+        const btcBtn = document.getElementById('btc-btn');
+
+        let currentCurrency = 'usd';
+
+        const formatPrice = (price, currency) => {
+          if (currency === 'usd') {
+            return price.toFixed(3);
+          } else if (currency === 'btc') {
+            return (price * 100000000).toFixed(3); // Convert to sats and use 3 decimal places
+          } else {
+            return price.toFixed(8);
+          }
+        };
+
+        const timeAgo = (timestamp) => {
+          const now = new Date();
+          const seconds = Math.floor((now - new Date(timestamp * 1000)) / 1000);
+
+          let interval = seconds / 31536000;
+          if (interval > 1) {
+            return Math.floor(interval) + ' years ago';
+          }
+          interval = seconds / 2592000;
+          if (interval > 1) {
+            return Math.floor(interval) + ' months ago';
+          }
+          interval = seconds / 86400;
+          if (interval > 1) {
+            return Math.floor(interval) + ' days ago';
+          }
+          interval = seconds / 3600;
+          if (interval > 1) {
+            return Math.floor(interval) + ' hours ago';
+          }
+          interval = seconds / 60;
+          if (interval > 1) {
+            return Math.floor(interval) + ' minutes ago';
+          }
+          return Math.floor(seconds) + ' seconds ago';
+        };
+
+        const fetchData = async () => {
+          const headers = { Accept: 'application/json' };
+
+          const athResponse = await fetch(`/max?currency=${currentCurrency}`, {
+            headers,
+          });
+          const athData = await athResponse.json();
+          document.getElementById('ath-price').textContent = formatPrice(
+            athData.price,
+            currentCurrency
+          );
+          document.getElementById('ath-date').textContent = `(${new Date(
+            athData.timestamp * 1000
+          ).toLocaleDateString()} - ${timeAgo(athData.timestamp)})`;
+
+          const atlResponse = await fetch(`/min?currency=${currentCurrency}`, {
+            headers,
+          });
+          const atlData = await atlResponse.json();
+          document.getElementById('atl-price').textContent = formatPrice(
+            atlData.price,
+            currentCurrency
+          );
+          document.getElementById('atl-date').textContent = `(${new Date(
+            atlData.timestamp * 1000
+          ).toLocaleDateString()} - ${timeAgo(atlData.timestamp)})`;
+
+          const oneYearAgo = new Date();
+          oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+          const since = oneYearAgo.toISOString().split('T')[0];
+
+          const yearHighResponse = await fetch(
+            `/max?currency=${currentCurrency}&since=${since}`,
+            { headers }
+          );
+          const yearHighData = await yearHighResponse.json();
+          document.getElementById('52w-high-price').textContent = formatPrice(
+            yearHighData.price,
+            currentCurrency
+          );
+          document.getElementById('52w-high-date').textContent = `(${new Date(
+            yearHighData.timestamp * 1000
+          ).toLocaleDateString()} - ${timeAgo(yearHighData.timestamp)})`;
+
+          fetchHistoricalData();
+        };
+
+        let chart;
+
+        const fetchHistoricalData = async () => {
+          const headers = { Accept: 'application/json' };
+          const activeRange = document.querySelector('.time-range-btn.active')
+            .dataset.range;
+
+          let from = null;
+          let to = null;
+
+          if (activeRange !== 'all') {
+            const fromDate = new Date();
+            const toDate = new Date();
+            if (activeRange === '1y') {
+              fromDate.setFullYear(fromDate.getFullYear() - 1);
+            } else if (activeRange === '1m') {
+              fromDate.setMonth(fromDate.getMonth() - 1);
+            } else if (activeRange === '7d') {
+              fromDate.setDate(fromDate.getDate() - 7);
+            } else if (activeRange === '1d') {
+            }
+            from = fromDate.toISOString().split('T')[0];
+            if (activeRange !== '1d') {
+              to = toDate.toISOString().split('T')[0];
+            }
+          }
+
+          let url = `/historical?currency=${currentCurrency}`;
+          if (from) {
+            url += `&from=${from}`;
+            if (to) {
+              url += `&to=${to}`;
+            }
+          }
+
+          const response = await fetch(url, { headers });
+          const data = await response.json();
+
+          updateChart(data);
+        };
+
+        const updateChart = (data) => {
+          const activeRange = document.querySelector('.time-range-btn.active')
+            .dataset.range;
+          let downsampledData = data;
+
+          if (activeRange === 'all' && data.length > 500) {
+            const sampleRate = Math.ceil(data.length / 500);
+            downsampledData = data.filter((_, i) => i % sampleRate === 0);
+          }
+
+          downsampledData.reverse();
+
+          const chartData = {
+            labels: downsampledData.map((item) => {
+              const date = new Date(item.timestamp * 1000);
+              return activeRange === '1d' ? date.toLocaleTimeString() : date.toLocaleDateString();
+            }),
+            datasets: [
+              {
+                label: `Price (${currentCurrency === 'btc' ? 'sats' : currentCurrency.toUpperCase()})`,
+                data: downsampledData.map((item) => currentCurrency === 'btc' ? item.price * 100000000 : item.price),
+                borderColor: '#0056b3',
+                tension: 0.1,
+              },
+            ],
+          };
+
+          const ctx = document.getElementById('price-chart').getContext('2d');
+
+          if (chart) {
+            chart.destroy();
+          }
+
+          chart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+          });
+        };
+
+        const setCurrency = (currency) => {
+          currentCurrency = currency;
+          if (currency === 'usd') {
+            usdBtn.classList.add('active');
+            btcBtn.classList.remove('active');
+          } else {
+            btcBtn.classList.add('active');
+            usdBtn.classList.remove('active');
+          }
+          fetchData();
+        };
+
+        usdBtn.addEventListener('click', () => setCurrency('usd'));
+        btcBtn.addEventListener('click', () => setCurrency('btc'));
+
+        const timeRangeBtns = document.querySelectorAll('.time-range-btn');
+        timeRangeBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            timeRangeBtns.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            fetchHistoricalData();
+          });
+        });
+
+        fetchData();
+      });
+    </script>
   </body>
 </html>

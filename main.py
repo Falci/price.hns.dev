@@ -28,6 +28,11 @@ async def read_root():
     with open("static/index.html") as f:
         return f.read()
 
+@app.get("/documentation.html", response_class=HTMLResponse)
+async def read_documentation():
+    with open("static/documentation.html") as f:
+        return f.read()
+
 @app.post("/ingest")
 def ingest_data():
     """
@@ -88,30 +93,26 @@ def ingest_data():
 
 @app.get("/historical")
 def read_prices(
-    from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD). Defaults to today."),
+    from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD)"),
     to_date: Optional[str] = Query(None, alias="to", description="End date (YYYY-MM-DD)"),
     currency: Optional[str] = Query("usd", description="Currency (e.g., usd, btc)")
 ):
     """
     Returns stored HNS price data with powerful filtering and aggregation.
-    - If 'from' is not provided, it defaults to today.
-    - If 'to' is not provided or is the same as 'from', returns all granular entries for that single day.
-    - If 'to' is provided and is different from 'from', returns a single, latest entry for each day in the range.
+    - If 'from' is not provided, it returns all the data.
+    - If 'from' is provided and 'to' is not, returns all granular entries for that single day.
+    - If 'from' and 'to' are provided, returns a single, latest entry for each day in the range.
     """
     try:
-        if from_date is None:
-            from_date = datetime.date.today().strftime('%Y-%m-%d')
+        from_ts = to_timestamp(from_date) if from_date else None
+        to_ts = to_timestamp(to_date, start_of_day=False) if to_date else None
 
-        if not to_date:
-            to_date = from_date
-
-        from_ts = to_timestamp(from_date)
-        to_ts = to_timestamp(to_date, start_of_day=False)
-
-        if from_date == to_date:
-            prices = get_prices(from_timestamp=from_ts, to_timestamp=to_ts, currency=currency)
-        else:
+        if from_date and to_date and from_date != to_date:
             prices = get_daily_summary_prices(from_timestamp=from_ts, to_timestamp=to_ts, currency=currency)
+        elif from_date:
+            prices = get_prices(from_timestamp=from_ts, to_timestamp=to_timestamp(from_date, start_of_day=False), currency=currency)
+        else:
+            prices = get_prices(currency=currency)
         
         return prices
     except Exception as e:
