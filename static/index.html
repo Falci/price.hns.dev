@@ -40,6 +40,48 @@
         color: #0056b3;
         margin-top: 0;
       }
+      .converter-container {
+        background: #fff;
+        padding: 20px 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+      }
+      .converter-container h2 {
+        color: #0056b3;
+        margin-top: 0;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .converter-fields {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px; /* Space between fields */
+      }
+      .converter-fields .form-group {
+        flex: 1 1 calc(50% - 7.5px); /* Default to 50% width with gap */
+        margin-bottom: 0; /* Remove margin-bottom as gap handles spacing */
+      }
+
+      @media (max-width: 600px) {
+        .converter-fields .form-group {
+          flex: 1 1 100%; /* Stack on small screens */
+          margin-bottom: 15px; /* Add back margin for stacking */
+        }
+      }
+
       #recent-price-container {
         text-align: center;
         margin-bottom: 1em;
@@ -119,13 +161,30 @@
           <span id="52w-high-date"></span>
         </div>
       </div>
+      <div class="converter-container">
+        <h2>Converter</h2>
+        <div class="converter-fields">
+          <div class="form-group">
+            <label for="hns-input">HNS</label>
+            <input type="number" id="hns-input" placeholder="Enter HNS amount" autofocus />
+          </div>
+          <div class="form-group">
+            <label for="currency-input" id="currency-label">USD</label>
+            <input
+              type="number"
+              id="currency-input"
+              placeholder="Enter currency amount"
+            />
+          </div>
+        </div>
+      </div>
       <div class="chart-container">
         <div class="time-range-toggle">
-          <button class="time-range-btn active" data-range="all">All</button>
+          <button class="time-range-btn" data-range="all">All</button>
           <button class="time-range-btn" data-range="1y">1Y</button>
           <button class="time-range-btn" data-range="1m">1M</button>
           <button class="time-range-btn" data-range="7d">7D</button>
-          <button class="time-range-btn" data-range="1d">1D</button>
+          <button class="time-range-btn active" data-range="1d">1D</button>
         </div>
         <canvas id="price-chart"></canvas>
       </div>
@@ -136,6 +195,14 @@
         const btcBtn = document.getElementById('btc-btn');
 
         let currentCurrency = 'usd';
+        let price = {
+          usd: 0,
+          btc: 0,
+        };
+
+        const currencyLabel = document.getElementById('currency-label');
+        const hnsInput = document.getElementById('hns-input');
+        const currencyInput = document.getElementById('currency-input');
 
         const formatPrice = (price, currency) => {
           if (currency === 'usd') {
@@ -218,7 +285,7 @@
             yearHighData.timestamp * 1000
           ).toLocaleDateString()} - ${timeAgo(yearHighData.timestamp)})`;
 
-          fetchHistoricalData();
+          return fetchHistoricalData();
         };
 
         let chart;
@@ -269,6 +336,8 @@
               mostRecentPrice,
               currentCurrency
             )} ${currencyLabel}`;
+            price[currentCurrency] = mostRecentPrice;
+            updateConverterFields();
           }
 
           updateChart(data);
@@ -318,15 +387,55 @@
           if (currency === 'usd') {
             usdBtn.classList.add('active');
             btcBtn.classList.remove('active');
+            currencyLabel.textContent = 'USD';
           } else {
             btcBtn.classList.add('active');
             usdBtn.classList.remove('active');
+            currencyLabel.textContent = 'BTC';
           }
-          fetchData();
+          hnsInput.value = '';
+          currencyInput.value = '';
+          fetchData().then(updateConverterFields);
+        };
+
+        const updateConverterFields = () => {
+          if (hnsInput.value) {
+            const hnsAmount = parseFloat(hnsInput.value);
+            const convertedAmount = hnsAmount * price[currentCurrency];
+            currencyInput.value = convertedAmount.toFixed(
+              currentCurrency === 'btc' ? 8 : 2
+            );
+          } else if (currencyInput.value) {
+            const currencyAmount = parseFloat(currencyInput.value);
+            const convertedAmount = currencyAmount / price[currentCurrency];
+            hnsInput.value = parseFloat(convertedAmount.toFixed(6));
+          }
         };
 
         usdBtn.addEventListener('click', () => setCurrency('usd'));
         btcBtn.addEventListener('click', () => setCurrency('btc'));
+
+        hnsInput.addEventListener('input', () => {
+          if (hnsInput.value) {
+            const hnsAmount = parseFloat(hnsInput.value);
+            const convertedAmount = hnsAmount * price[currentCurrency];
+            currencyInput.value = convertedAmount.toFixed(
+              currentCurrency === 'btc' ? 8 : 2
+            );
+          } else {
+            currencyInput.value = '';
+          }
+        });
+
+        currencyInput.addEventListener('input', () => {
+          if (currencyInput.value) {
+            const currencyAmount = parseFloat(currencyInput.value);
+            const convertedAmount = currencyAmount / price[currentCurrency];
+            hnsInput.value = parseFloat(convertedAmount.toFixed(6));
+          } else {
+            hnsInput.value = '';
+          }
+        });
 
         const timeRangeBtns = document.querySelectorAll('.time-range-btn');
         timeRangeBtns.forEach((btn) => {
@@ -337,7 +446,7 @@
           });
         });
 
-        fetchData();
+        fetchData().then(updateConverterFields);
       });
     </script>
   </body>
