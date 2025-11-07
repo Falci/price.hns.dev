@@ -206,7 +206,7 @@
 
         const formatPrice = (price, currency) => {
           if (currency === 'usd') {
-            return price.toFixed(3);
+            return price.toFixed(4);
           } else if (currency === 'btc') {
             return (price * 100000000).toFixed(3); // Convert to sats and use 3 decimal places
           } else {
@@ -403,7 +403,7 @@
             const hnsAmount = parseFloat(hnsInput.value);
             const convertedAmount = hnsAmount * price[currentCurrency];
             currencyInput.value = convertedAmount.toFixed(
-              currentCurrency === 'btc' ? 8 : 2
+              currentCurrency === 'btc' ? 8 : 4
             );
           } else if (currencyInput.value) {
             const currencyAmount = parseFloat(currencyInput.value);
@@ -420,7 +420,7 @@
             const hnsAmount = parseFloat(hnsInput.value);
             const convertedAmount = hnsAmount * price[currentCurrency];
             currencyInput.value = convertedAmount.toFixed(
-              currentCurrency === 'btc' ? 8 : 2
+              currentCurrency === 'btc' ? 8 : 4
             );
           } else {
             currencyInput.value = '';
